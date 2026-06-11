@@ -1370,7 +1370,241 @@ function removePasto(id){
   if(el){ el.remove(); aggiornaTotalePasti(); }
 }
 
+// =====================
+//  GITHUB SYNC CONFIG
+// =====================
 
+function getGhConfig() {
+  return {
+    token: (document.getElementById('cfgGhToken')?.value || localStorage.getItem('ghToken') || '').trim(),
+    owner: (document.getElementById('cfgGhOwner')?.value || localStorage.getItem('ghOwner') || '').trim(),
+    repo: (document.getElementById('cfgGhRepo')?.value || localStorage.getItem('ghRepo') || '').trim(),
+    path: (document.getElementById('cfgGhPath')?.value || localStorage.getItem('ghPath') || '').trim()
+  };
+}
+
+function setGhStatus(msg, isError = false) {
+  const el = document.getElementById('ghStatus');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = isError ? '#ff6b6b' : 'var(--muted)';
+}
+
+function saveGhSettings() {
+  const token = document.getElementById('cfgGhToken')?.value.trim() || '';
+  const owner = document.getElementById('cfgGhOwner')?.value.trim() || '';
+  const repo = document.getElementById('cfgGhRepo')?.value.trim() || '';
+  const path = document.getElementById('cfgGhPath')?.value.trim() || '';
+
+  if (!token || !owner || !repo || !path) {
+    setGhStatus('Compila tutti i campi GitHub (token, owner, repo, file JSON).', true);
+    return;
+  }
+
+  localStorage.setItem('ghToken', token);
+  localStorage.setItem('ghOwner', owner);
+  localStorage.setItem('ghRepo', repo);
+  localStorage.setItem('ghPath', path);
+
+  setGhStatus('Impostazioni GitHub salvate nel browser.');
+}
+
+// Carica i valori salvati dal localStorage nei campi UI
+function hydrateGhSettingsFromStorage() {
+  const token = localStorage.getItem('ghToken') || '';
+  const owner = localStorage.getItem('ghOwner') || '';
+  const repo = localStorage.getItem('ghRepo') || '';
+  const path = localStorage.getItem('ghPath') || '';
+
+  if (document.getElementById('cfgGhToken')) document.getElementById('cfgGhToken').value = token;
+  if (document.getElementById('cfgGhOwner')) document.getElementById('cfgGhOwner').value = owner;
+  if (document.getElementById('cfgGhRepo')) document.getElementById('cfgGhRepo').value = repo;
+  if (document.getElementById('cfgGhPath')) document.getElementById('cfgGhPath').value = path;
+}
+
+// =====================
+//  GITHUB API HELPERS
+// =====================
+
+async function ghApiGetFile() {
+  const cfg = getGhConfig();
+  if (!cfg.token || !cfg.owner || !cfg.repo || !cfg.path) {
+    setGhStatus('Configura prima le impostazioni GitHub.', true);
+    throw new Error('Missing GitHub config');
+  }
+
+  const url = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${encodeURIComponent(cfg.path)}`;
+
+  const res = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${cfg.token}`,
+      'Accept': 'application/vnd.github+json'
+    }
+  });
+
+  if (res.status === 404) {
+    // File non esiste ancora: DB vuoto
+    return { exists: false, sha: null, content: '{}' };
+  }
+
+  if (!res.ok) {
+    const text = await res.text();
+    setGhStatus(`Errore GitHub GET: ${res.status}`, true);
+    console.error('GitHub GET error:', res.status, text);
+    throw new Error('GitHub GET failed');
+  }
+
+  const data = await res.json();
+  const decoded = atob(data.content.replace(/\n/g, ''));
+  return { exists: true, sha: data.sha, content: decoded };
+}
+
+async function ghApiPutFile(jsonString, previousSha) {
+  const cfg = getGhConfig();
+  if (!cfg.token || !cfg.owner || !cfg.repo || !cfg.path) {
+    setGhStatus('Configura prima le impostazioni GitHub.', true);
+    throw new Error('Missing GitHub config');
+  }
+
+  const url = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${encodeURIComponent(cfg.path)}`;
+
+  const contentBase64 = btoa(unescape(encodeURIComponent(jsonString)));
+
+  const body = {
+    message: 'Update fitness dashboard data',
+    content: contentBase64
+  };
+  if (previousSha) {
+    body.sha = previousSha;
+  }
+
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${cfg.token}`,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    setGhStatus(`Errore GitHub PUT: ${res.status}`, true);
+    console.error('GitHub PUT error:', res.status, text);
+    throw new Error('GitHub PUT failed');
+  }
+
+  const data = await res.json();
+  return data;
+}
+
+// =====================
+//  INTEGRAZIONE CON IL DB
+// =====================
+
+// Questa funzione dovrebbe leggere lo stato interno "db" e serializzarlo in JSON.
+// Se nel tuo codice esiste già qualcosa tipo exportDataJSON(), puoi riutilizzarlo.
+// Qui assumiamo una funzione getCurrentDB() che restituisce l'oggetto dati.
+function getCurrentDBSnapshot() {
+  // Se esiste una variabile globale con i dati, usala qui.
+  // Placeholder: se hai già una funzione per esportare il DB, sostituisci questo corpo.
+  if (typeof exportDataJSON === 'function') {
+    // Supponendo che exportDataJSON restituisca una stringa JSON
+    return exportDataJSON();
+  }
+  if (window.db) {
+    return JSON.stringify(window.db);
+  }
+  return '{}';
+}
+
+// Questa funzione dovrebbe caricare un oggetto dati nel tuo stato interno.
+// Se hai già una funzione tipo importDataFromObject, usala qui.
+function applyDBFromObject(obj) {
+  if (typeof importDataFromObject === 'function') {
+    importDataFromObject(obj);
+    return;
+  }
+  // Fallback: se hai una variabile globale, la sovrascrivi
+  window.db = obj;
+}
+
+// Carica dal file GitHub e applica al DB interno
+async function loadDBFromGitHub() {
+  try {
+    setGhStatus('Caricamento da GitHub in corso...');
+    const { exists, content } = await ghApiGetFile();
+    if (!exists) {
+      setGhStatus('File su GitHub non trovato: partenza da DB vuoto.');
+      applyDBFromObject({});
+      // Qui aggiorna la UI come fai quando inizializzi un DB vuoto
+      if (typeof renderAllFromDB === 'function') {
+        renderAllFromDB();
+      }
+      return;
+    }
+
+    const obj = JSON.parse(content);
+    applyDBFromObject(obj);
+    if (typeof renderAllFromDB === 'function') {
+      renderAllFromDB();
+    }
+    setGhStatus('Dati caricati da GitHub.');
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// Salva il DB corrente su GitHub
+async function saveDBToGitHub() {
+  try {
+    setGhStatus('Salvataggio su GitHub in corso...');
+
+    // Prima leggo lo SHA corrente (se esiste)
+    let sha = null;
+    try {
+      const info = await ghApiGetFile();
+      sha = info.sha || null;
+    } catch (e) {
+      // se 404, info.exists = false e sha resta null
+    }
+
+    const jsonString = getCurrentDBSnapshot();
+    await ghApiPutFile(jsonString, sha);
+
+    setGhStatus('Dati salvati su GitHub.');
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// =====================
+//  AGGANCIO PULSANTI UI
+// =====================
+
+document.addEventListener('DOMContentLoaded', () => {
+  // id bottoni definiti nella card impostazioni
+  const btnSaveSettings = document.getElementById('btnGhSaveSettings');
+  const btnLoad = document.getElementById('btnGhLoad');
+
+  if (btnSaveSettings) {
+    btnSaveSettings.addEventListener('click', (e) => {
+      e.preventDefault();
+      saveGhSettings();
+    });
+  }
+
+  if (btnLoad) {
+    btnLoad.addEventListener('click', (e) => {
+      e.preventDefault();
+      loadDBFromGitHub();
+    });
+  }
+
+  // Popola i campi GitHub dai valori salvati nel browser
+  hydrateGhSettingsFromStorage();
+});
 </script>
 </body>
 </html>
