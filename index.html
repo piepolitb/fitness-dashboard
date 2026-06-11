@@ -422,26 +422,68 @@ input[type=range] { width:100%; accent-color:var(--accent); }
   </div>
 </div>
 <div class="tab" id="tab-impostazioni">
+
+<!-- DA QUI --->
   <div class="card">
     <h3>⚙ Impostazioni Dati</h3>
+
+    <!-- Profilo utente (lasciato invariato) -->
     <div class="row">
-      <div class="field"><label>Nome</label><input type="text" id="cfgNome" placeholder="Giuseppe"></div>
-      <div class="field"><label>Eta</label><input type="number" id="cfgEta" placeholder="44"></div>
-      <div class="field"><label>Altezza (cm)</label><input type="number" id="cfgAltezza" placeholder="187"></div>
+      <div class="field">
+        <label>Nome</label>
+        <input type="text" id="cfgNome" placeholder="Giuseppe">
+      </div>
+      <div class="field">
+        <label>Età</label>
+        <input type="number" id="cfgEta" placeholder="44">
+      </div>
+      <div class="field">
+        <label>Altezza (cm)</label>
+        <input type="number" id="cfgAltezza" placeholder="187">
+      </div>
     </div>
     <div class="btn-bar">
       <button class="btn btn-primary" onclick="salvaCfg()">💾 Salva profilo</button>
     </div>
+
     <div class="sep"></div>
-    <h4 style="color:var(--muted);margin-bottom:8px;">File dati esterno</h4>
-    <p style="color:var(--muted);font-size:12px;margin-bottom:8px;">Collega un file JSON su OneDrive. Ogni salvataggio aggiornerà automaticamente quel file.</p>
-    <div class="btn-bar">
-      <button class="btn btn-success" onclick="connectFile()">Collega file dati</button>
-      <button class="btn btn-ghost" onclick="downloadDataJSON()">Scarica JSON</button>
-      <button class="btn btn-ghost" onclick="importDataJSON()">Importa JSON</button>
+
+    <!-- Nuova sezione: sincronizzazione GitHub -->
+    <h4 style="color:var(--muted);margin-bottom:8px;">Sincronizzazione GitHub</h4>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:8px;">
+      Configura GitHub come archivio centrale dei dati. Ogni salvataggio aggiornerà il file JSON nel repository.
+    </p>
+
+    <div class="row">
+      <div class="field">
+        <label for="cfgGhToken">GitHub Token (PAT)</label>
+        <input type="password" id="cfgGhToken" placeholder="ghp_...">
+      </div>
+      <div class="field">
+        <label for="cfgGhOwner">Owner</label>
+        <input type="text" id="cfgGhOwner" placeholder="piepolitb">
+      </div>
+      <div class="field">
+        <label for="cfgGhRepo">Repository</label>
+        <input type="text" id="cfgGhRepo" placeholder="fitness-dashboard">
+      </div>
     </div>
-    <input type="file" id="jsonImportFile" accept="application/json" style="display:none" onchange="handleImportFile(event)">
+
+    <div class="row">
+      <div class="field" style="flex:1;">
+        <label for="cfgGhPath">File JSON</label>
+        <input type="text" id="cfgGhPath" placeholder="cruscotto_giuseppe_data.json">
+      </div>
+    </div>
+
+    <div class="btn-bar">
+      <button class="btn btn-primary" id="btnGhSaveSettings">💾 Salva impostazioni GitHub</button>
+      <button class="btn btn-success" id="btnGhLoad">⬇️ Carica da GitHub</button>
+    </div>
+
+    <div id="ghStatus" style="color:var(--muted);font-size:12px;margin-top:4px;"></div>
   </div>
+<!-- A QUI --->
 </div>
 </main>
 </div>
