@@ -1503,31 +1503,17 @@ async function ghApiPutFile(jsonString, previousSha) {
 //  INTEGRAZIONE CON IL DB
 // =====================
 
-// Questa funzione dovrebbe leggere lo stato interno "db" e serializzarlo in JSON.
-// Se nel tuo codice esiste già qualcosa tipo exportDataJSON(), puoi riutilizzarlo.
-// Qui assumiamo una funzione getCurrentDB() che restituisce l'oggetto dati.
+// Usa la variabile globale DB che già utilizzi in exportJSON()
 function getCurrentDBSnapshot() {
-  // Se esiste una variabile globale con i dati, usala qui.
-  // Placeholder: se hai già una funzione per esportare il DB, sostituisci questo corpo.
-  if (typeof exportDataJSON === 'function') {
-    // Supponendo che exportDataJSON restituisca una stringa JSON
-    return exportDataJSON();
-  }
-  if (window.db) {
-    return JSON.stringify(window.db);
+  if (typeof DB !== 'undefined') {
+    return JSON.stringify(DB);
   }
   return '{}';
 }
 
-// Questa funzione dovrebbe caricare un oggetto dati nel tuo stato interno.
-// Se hai già una funzione tipo importDataFromObject, usala qui.
+// Carica un oggetto dati nel tuo stato interno
 function applyDBFromObject(obj) {
-  if (typeof importDataFromObject === 'function') {
-    importDataFromObject(obj);
-    return;
-  }
-  // Fallback: se hai una variabile globale, la sovrascrivi
-  window.db = obj;
+  DB = obj || {};
 }
 
 // Carica dal file GitHub e applica al DB interno
@@ -1538,18 +1524,12 @@ async function loadDBFromGitHub() {
     if (!exists) {
       setGhStatus('File su GitHub non trovato: partenza da DB vuoto.');
       applyDBFromObject({});
-      // Qui aggiorna la UI come fai quando inizializzi un DB vuoto
-      if (typeof renderAllFromDB === 'function') {
-        renderAllFromDB();
-      }
       return;
     }
 
     const obj = JSON.parse(content);
     applyDBFromObject(obj);
-    if (typeof renderAllFromDB === 'function') {
-      renderAllFromDB();
-    }
+    // Se hai una funzione che ridisegna tutta la UI da DB, chiamala qui.
     setGhStatus('Dati caricati da GitHub.');
   } catch (err) {
     console.error(err);
@@ -1584,7 +1564,6 @@ async function saveDBToGitHub() {
 // =====================
 
 document.addEventListener('DOMContentLoaded', () => {
-  // id bottoni definiti nella card impostazioni
   const btnSaveSettings = document.getElementById('btnGhSaveSettings');
   const btnLoad = document.getElementById('btnGhLoad');
 
