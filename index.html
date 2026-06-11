@@ -479,10 +479,10 @@ input[type=range] { width:100%; accent-color:var(--accent); }
     <div class="btn-bar">
       <button class="btn btn-primary" id="btnGhSaveSettings">💾 Salva impostazioni GitHub</button>
       <button class="btn btn-success" id="btnGhLoad">⬇️ Carica da GitHub</button>
+      <button class="btn btn-ghost" id="btnGhSaveDB">💾 Salva stato su GitHub</button>
     </div>
 
     <div id="ghStatus" style="color:var(--muted);font-size:12px;margin-top:4px;"></div>
-  </div>
 <!-- A QUI --->
 </div>
 </main>
@@ -1566,6 +1566,7 @@ async function saveDBToGitHub() {
 document.addEventListener('DOMContentLoaded', () => {
   const btnSaveSettings = document.getElementById('btnGhSaveSettings');
   const btnLoad = document.getElementById('btnGhLoad');
+  const btnSaveDB = document.getElementById('btnGhSaveDB');
 
   if (btnSaveSettings) {
     btnSaveSettings.addEventListener('click', (e) => {
@@ -1578,6 +1579,13 @@ document.addEventListener('DOMContentLoaded', () => {
     btnLoad.addEventListener('click', (e) => {
       e.preventDefault();
       loadDBFromGitHub();
+    });
+  }
+
+  if (btnSaveDB) {
+    btnSaveDB.addEventListener('click', (e) => {
+      e.preventDefault();
+      saveDBToGitHub();
     });
   }
 
