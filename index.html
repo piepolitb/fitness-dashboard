@@ -998,36 +998,59 @@ function macroBox(lbl,val,tgt,unit){
     '</div>';
 }
 
-function salvaDieta(){
-  const dt = document.getElementById('dietaData').value;
-  if(!dt){ toast('Seleziona una data', true); return; }
-  let record = { data:dt, modalita:modalitaDieta, pasti:[], totale:{} };
-  if(modalitaDieta==='pasti'){
-    document.getElementById('pastiContainer').querySelectorAll('.ex-block').forEach(function(b){
-      const id = b.id.replace('pasto-','');
-      record.pasti.push({
-        nome: document.getElementById('pastoNome-'+id).value,
-        kcal: parseFloat(document.getElementById('pastoKcal-'+id).value)||0,
-        pro: parseFloat(document.getElementById('pastoPro-'+id).value)||0,
-        carbo: parseFloat(document.getElementById('pastoCarbo-'+id).value)||0,
-        fat: parseFloat(document.getElementById('pastoFat-'+id).value)||0,
-        note: document.getElementById('pastoNote-'+id).value
-      });
-    });
-    let k=0,p=0,c=0,f=0;
-    record.pasti.forEach(function(p2){ k+=p2.kcal; p+=p2.pro; c+=p2.carbo; f+=p2.fat; });
-    record.totale = {kcal:k, pro:p, carbo:c, fat:f};
-  } else {
-    record.totale = {
-      kcal: parseFloat(document.getElementById('dietaTotKcal').value)||0,
-      pro: parseFloat(document.getElementById('dietaTotPro').value)||0,
-      carbo: parseFloat(document.getElementById('dietaTotCarbo').value)||0,
-      fat: parseFloat(document.getElementById('dietaTotFat').value)||0
-    };
-    record.note = document.getElementById('dietaTotNote').value;
+function salvaDieta() {
+  const dt = document.getElementById("dData").value;
+  if (!dt) {
+    toast("Seleziona una data", true);
+    return;
   }
-  DB.dieta[dt] = record;
-  saveDB(); toast('Dieta salvata'); renderDietaStorico(); renderTargetDisplay();
+
+  const tipo = document.getElementById("dTipo").value;
+  const kcal = parseFloat(document.getElementById("dKcal").value || 0);
+  const pro = parseFloat(document.getElementById("dPro").value || 0);
+  const carbo = parseFloat(document.getElementById("dCarbo").value || 0);
+  const fat = parseFloat(document.getElementById("dFat").value || 0);
+  const note = document.getElementById("dNote").value || "";
+  const status = document.getElementById("dStatus").value || "ok";
+
+  if (!DB.dieta[dt]) {
+    DB.dieta[dt] = {
+      data: dt,
+      modalita: "pasti",
+      pasti: [],
+      totale: { kcal: 0, pro: 0, carbo: 0, fat: 0 }
+    };
+  }
+
+  DB.dieta[dt].pasti.push({
+    nome: tipo,
+    kcal,
+    pro,
+    carbo,
+    fat,
+    note,
+    status
+  });
+
+  DB.dieta[dt].totale = DB.dieta[dt].pasti.reduce((acc, p) => {
+    acc.kcal += parseFloat(p.kcal || 0);
+    acc.pro += parseFloat(p.pro || 0);
+    acc.carbo += parseFloat(p.carbo || 0);
+    acc.fat += parseFloat(p.fat || 0);
+    return acc;
+  }, { kcal: 0, pro: 0, carbo: 0, fat: 0 });
+
+  saveDB();
+  toast("Dieta salvata");
+  renderDietaStorico();
+  renderTargetDisplay();
+
+  document.getElementById("dKcal").value = "";
+  document.getElementById("dPro").value = "";
+  document.getElementById("dCarbo").value = "";
+  document.getElementById("dFat").value = "";
+  document.getElementById("dNote").value = "";
+  document.getElementById("dStatus").value = "ok";
 }
 
 function salvaTarget(){
@@ -1351,7 +1374,7 @@ window.addEventListener('DOMContentLoaded', function(){
   const today = new Date().toISOString().slice(0,10);
   document.getElementById('oggiData').value = today;
   document.getElementById('wkData').value = today;
-  document.getElementById('dietaData').value = today;
+  document.getElementById("dData").value = today
   PASTI_DEFAULT.forEach(function(n){ addPasto(n); });
   refreshAll();
   caricaSchedaWorkout();
