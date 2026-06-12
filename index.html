@@ -1016,7 +1016,6 @@ function salvaDieta() {
   if (!DB.dieta[dt]) {
     DB.dieta[dt] = {
       data: dt,
-      modalita: "pasti",
       pasti: [],
       totale: { kcal: 0, pro: 0, carbo: 0, fat: 0 }
     };
@@ -1031,6 +1030,19 @@ function salvaDieta() {
     note,
     status
   });
+
+  DB.dieta[dt].totale = DB.dieta[dt].pasti.reduce((acc, p) => {
+    acc.kcal += Number(p.kcal || 0);
+    acc.pro += Number(p.pro || 0);
+    acc.carbo += Number(p.carbo || 0);
+    acc.fat += Number(p.fat || 0);
+    return acc;
+  }, { kcal: 0, pro: 0, carbo: 0, fat: 0 });
+
+  saveDB();
+  renderDietaStorico();
+  toast("Dieta salvata");
+}
 
   DB.dieta[dt].totale = DB.dieta[dt].pasti.reduce((acc, p) => {
     acc.kcal += parseFloat(p.kcal || 0);
