@@ -999,36 +999,19 @@ function macroBox(lbl,val,tgt,unit){
 }
 
 function salvaDieta() {
-  const dtEl = document.getElementById("dData");
-  const tipoEl = document.getElementById("dTipo");
-  const kcalEl = document.getElementById("dKcal");
-  const proEl = document.getElementById("dPro");
-  const carboEl = document.getElementById("dCarbo");
-  const fatEl = document.getElementById("dFat");
-  const noteEl = document.getElementById("dNote");
-  const status = document.getElementById("dStatus")?.value || "ok";
-
-  if (!dtEl || !tipoEl || !kcalEl || !proEl || !carboEl || !fatEl || !noteEl || !statusEl) {
-    console.error("Manca un campo dieta", {
-      dtEl, tipoEl, kcalEl, proEl, carboEl, fatEl, noteEl, statusEl
-    });
-    toast("Manca un campo nella dieta", true);
-    return;
-  }
-
-  const dt = dtEl.value;
+  const dt = document.getElementById("dData").value;
   if (!dt) {
     toast("Seleziona una data", true);
     return;
   }
 
-  const tipo = tipoEl.value;
-  const kcal = parseFloat(kcalEl.value || 0);
-  const pro = parseFloat(proEl.value || 0);
-  const carbo = parseFloat(carboEl.value || 0);
-  const fat = parseFloat(fatEl.value || 0);
-  const note = noteEl.value || "";
-  const status = statusEl.value || "ok";
+  const tipo = document.getElementById("dTipo").value;
+  const kcal = parseFloat(document.getElementById("dKcal").value || 0);
+  const pro = parseFloat(document.getElementById("dPro").value || 0);
+  const carbo = parseFloat(document.getElementById("dCarbo").value || 0);
+  const fat = parseFloat(document.getElementById("dFat").value || 0);
+  const note = document.getElementById("dNote").value || "";
+  const status = document.getElementById("dStatus").value || "ok";
 
   if (!DB.dieta[dt]) {
     DB.dieta[dt] = {
@@ -1038,7 +1021,15 @@ function salvaDieta() {
     };
   }
 
-  DB.dieta[dt].pasti.push({ nome: tipo, kcal, pro, carbo, fat, note, status });
+  DB.dieta[dt].pasti.push({
+    nome: tipo,
+    kcal,
+    pro,
+    carbo,
+    fat,
+    note,
+    status
+  });
 
   DB.dieta[dt].totale = DB.dieta[dt].pasti.reduce((acc, p) => {
     acc.kcal += Number(p.kcal || 0);
@@ -1048,10 +1039,7 @@ function salvaDieta() {
     return acc;
   }, { kcal: 0, pro: 0, carbo: 0, fat: 0 });
 
-  console.log("PRIMA saveDB", JSON.stringify(DB.dieta, null, 2));
   saveDB();
-  console.log("DOPO saveDB", JSON.stringify(DB.dieta, null, 2));
-
   renderDietaStorico();
   toast("Dieta salvata");
 }
