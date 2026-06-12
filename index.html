@@ -1039,7 +1039,10 @@ function salvaDieta() {
     return acc;
   }, { kcal: 0, pro: 0, carbo: 0, fat: 0 });
 
-  saveDB();
+console.log("PRIMA saveDB", JSON.stringify(DB.dieta, null, 2));
+saveDB();
+console.log("DOPO saveDB", JSON.stringify(DB.dieta, null, 2));
+  
   renderDietaStorico();
   toast("Dieta salvata");
 }
