@@ -1712,12 +1712,13 @@ window.addEventListener('DOMContentLoaded', function(){
   const today = new Date().toISOString().slice(0,10);
   document.getElementById('oggiData').value = today;
   document.getElementById('wkData').value = today;
-  document.getElementById("dData").value = today
+  document.getElementById("dData").value = today;
   PASTI_DEFAULT.forEach(function(n){ addPasto(n); });
+  caricaPromptBaseAI();
   refreshAll();
   caricaSchedaWorkout();
-  caricaPromptBaseAI();
 });
+
 // Helper functions
 function updateRPE(id, val){
   var el = document.getElementById('rpeVal-'+id);
