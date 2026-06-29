@@ -155,7 +155,7 @@ input[type=range] { width:100%; accent-color:var(--accent); }
           <option value="A">Scheda A</option>
           <option value="B">Scheda B</option>
           <option value="C">Scheda C</option>
-          <option value="cardio">Cardio
+          <option value="cardio">Cardio</option>
           <option value="surf">&#x1F3C4; Surf</option>
           <option value="altro">Altro</option>
         </select>
@@ -163,6 +163,70 @@ input[type=range] { width:100%; accent-color:var(--accent); }
       <div class="field"><label>Umore (1-10)</label><input type="number" min="1" max="10" id="oggiUmore" placeholder="7"></div>
       <div class="field"><label>Energia (1-10)</label><input type="number" min="1" max="10" id="oggiEnergia" placeholder="7"></div>
     </div>
+
+    <div class="sep"></div>
+    <h4 style="color:var(--muted);margin-bottom:8px;font-size:13px;">&#x1F319; Sonno notturno</h4>
+    <div class="row">
+      <div class="field"><label>Risvegli notturni (#)</label><input type="number" min="0" id="oggiRisvegli" placeholder="0"></div>
+      <div class="field">
+        <label>Difficolt&#224; a riaddormentarsi</label>
+        <select id="oggiRiaddormentamento">
+          <option value="">--</option>
+          <option value="nessuna">nessuna</option>
+          <option value="lieve">lieve</option>
+          <option value="media">media</option>
+          <option value="forte">forte</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Agitazione notturna</label>
+        <select id="oggiAgitazioneNotturna">
+          <option value="">--</option>
+          <option value="nessuna">nessuna</option>
+          <option value="lieve">lieve</option>
+          <option value="media">media</option>
+          <option value="forte">forte</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Qualit&#224; sonno percepita (1-10)</label>
+        <input type="number" min="1" max="10" id="oggiQualitaSonno" placeholder="7">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Necessit&#224; di muoversi</label>
+        <select id="oggiMuoversiNotte">
+          <option value="">--</option>
+          <option value="no">no</option>
+          <option value="lieve">lieve</option>
+          <option value="media">media</option>
+          <option value="forte">forte</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Tensione / stringere articolazioni</label>
+        <select id="oggiTensioneArticolareNotte">
+          <option value="">--</option>
+          <option value="no">no</option>
+          <option value="lieve">lieve</option>
+          <option value="media">media</option>
+          <option value="forte">forte</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Mente attiva / allerta</label>
+        <select id="oggiMenteAttivaNotte">
+          <option value="">--</option>
+          <option value="no">no</option>
+          <option value="lieve">lieve</option>
+          <option value="media">media</option>
+          <option value="forte">forte</option>
+        </select>
+      </div>
+      <div class="field"><label>Note sonno</label><input type="text" id="oggiNoteSonno" placeholder="Es. risveglio alle 4, agitazione, tensione..."></div>
+    </div>
+
     <div class="sep"></div>
     <h4 style="color:var(--muted);margin-bottom:8px;font-size:13px;">&#x1FAB5; Intestino</h4>
     <div class="row">
@@ -694,63 +758,94 @@ function caricaOggi(){
   const today = new Date().toISOString().slice(0,10);
   document.getElementById('oggiData').value = today;
   const e = DB.entries[today] || {};
-  document.getElementById('oggiPeso').value = e.peso||'';
-  document.getElementById('oggiSonno').value = e.sonno||'';
-  document.getElementById('oggiPassi').value = e.passi||'';
-  document.getElementById('oggiHRV').value = e.hrv||'';
-  document.getElementById('oggiStress').value = e.stress||'';
-  document.getElementById('oggiKcalAttive').value = e.kcalAttive||'';
-  document.getElementById('oggiBodyBattery').value = e.bodyBattery||'';
-  document.getElementById('oggiSeduta').value = e.seduta||'';
-  document.getElementById('oggiUmore').value = e.umore||'';
-  document.getElementById('oggiEnergia').value = e.energia||'';
-  document.getElementById('oggiScariche').value = e.scariche||'';
-  document.getElementById('oggiBristol').value = e.bristol||'';
-  document.getElementById('oggiGonfiore').value = e.gonfiore||'';
-  document.getElementById('oggiFlatulenza').value = e.flatulenza||'';
-  document.getElementById('oggiUrgenza').value = e.urgenza||'';
-  document.getElementById('oggiDolore').value = e.dolore||'';
-  document.getElementById('oggiNausea').value = e.nausea||'';
-  document.getElementById('oggiReflusso').value = e.reflusso||'';
-  document.getElementById('oggiVita').value = e.vita||'';
-  document.getElementById('oggiPetto').value = e.petto||'';
-  document.getElementById('oggiFianchi').value = e.fianchi||'';
-  document.getElementById('oggiTorace').value = e.torace||'';
-  document.getElementById('oggiCoscia').value = e.coscia||'';
-  document.getElementById('oggiNote').value = e.note||'';
+
+  document.getElementById('oggiPeso').value = e.peso || '';
+  document.getElementById('oggiSonno').value = e.sonno || '';
+  document.getElementById('oggiPassi').value = e.passi || '';
+  document.getElementById('oggiHRV').value = e.hrv || '';
+  document.getElementById('oggiStress').value = e.stress || '';
+  document.getElementById('oggiKcalAttive').value = e.kcalAttive || '';
+  document.getElementById('oggiBodyBattery').value = e.bodyBattery || '';
+  document.getElementById('oggiSeduta').value = e.seduta || '';
+  document.getElementById('oggiUmore').value = e.umore || '';
+  document.getElementById('oggiEnergia').value = e.energia || '';
+
+  document.getElementById('oggiRisvegli').value = e.risvegliNotturni || '';
+  document.getElementById('oggiRiaddormentamento').value = e.riaddormentamento || '';
+  document.getElementById('oggiAgitazioneNotturna').value = e.agitazioneNotturna || '';
+  document.getElementById('oggiQualitaSonno').value = e.qualitaSonno || '';
+  document.getElementById('oggiMuoversiNotte').value = e.muoversiNotte || '';
+  document.getElementById('oggiTensioneArticolareNotte').value = e.tensioneArticolareNotte || '';
+  document.getElementById('oggiMenteAttivaNotte').value = e.menteAttivaNotte || '';
+  document.getElementById('oggiNoteSonno').value = e.noteSonno || '';
+
+  document.getElementById('oggiScariche').value = e.scariche || '';
+  document.getElementById('oggiBristol').value = e.bristol || '';
+  document.getElementById('oggiGonfiore').value = e.gonfiore || '';
+  document.getElementById('oggiFlatulenza').value = e.flatulenza || '';
+  document.getElementById('oggiUrgenza').value = e.urgenza || '';
+  document.getElementById('oggiDolore').value = e.dolore || '';
+  document.getElementById('oggiNausea').value = e.nausea || '';
+  document.getElementById('oggiReflusso').value = e.reflusso || '';
+
+  document.getElementById('oggiVita').value = e.vita || '';
+  document.getElementById('oggiPetto').value = e.petto || '';
+  document.getElementById('oggiFianchi').value = e.fianchi || '';
+  document.getElementById('oggiTorace').value = e.torace || '';
+  document.getElementById('oggiCoscia').value = e.coscia || '';
+  document.getElementById('oggiNote').value = e.note || '';
+
   renderOggiRiepilogo();
 }
 
 function salvaOggi(){
   const dt = document.getElementById('oggiData').value;
   if(!dt){ toast('Seleziona una data', true); return; }
+
+  const prev = DB.entries[dt] || {};
+
   DB.entries[dt] = {
-    peso: parseFloat(document.getElementById('oggiPeso').value)||null,
-    sonno: parseFloat(document.getElementById('oggiSonno').value)||null,
-    passi: parseInt(document.getElementById('oggiPassi').value)||null,
-    hrv: parseFloat(document.getElementById('oggiHRV').value)||null,
-    stress: parseFloat(document.getElementById('oggiStress').value)||null,
-    kcalAttive: parseInt(document.getElementById('oggiKcalAttive').value)||null,
-    bodyBattery: parseInt(document.getElementById('oggiBodyBattery').value)||null,
+    ...prev,
+    peso: parseFloat(document.getElementById('oggiPeso').value) || null,
+    sonno: parseFloat(document.getElementById('oggiSonno').value) || null,
+    passi: parseInt(document.getElementById('oggiPassi').value) || null,
+    hrv: parseFloat(document.getElementById('oggiHRV').value) || null,
+    stress: parseFloat(document.getElementById('oggiStress').value) || null,
+    kcalAttive: parseInt(document.getElementById('oggiKcalAttive').value) || null,
+    bodyBattery: parseInt(document.getElementById('oggiBodyBattery').value) || null,
     seduta: document.getElementById('oggiSeduta').value,
-    umore: parseInt(document.getElementById('oggiUmore').value)||null,
-    energia: parseInt(document.getElementById('oggiEnergia').value)||null,
-    scariche: parseInt(document.getElementById('oggiScariche').value)||null,
-    bristol: parseInt(document.getElementById('oggiBristol').value)||null,
+    umore: parseInt(document.getElementById('oggiUmore').value) || null,
+    energia: parseInt(document.getElementById('oggiEnergia').value) || null,
+
+    risvegliNotturni: parseInt(document.getElementById('oggiRisvegli').value) || null,
+    riaddormentamento: document.getElementById('oggiRiaddormentamento').value,
+    agitazioneNotturna: document.getElementById('oggiAgitazioneNotturna').value,
+    qualitaSonno: parseInt(document.getElementById('oggiQualitaSonno').value) || null,
+    muoversiNotte: document.getElementById('oggiMuoversiNotte').value,
+    tensioneArticolareNotte: document.getElementById('oggiTensioneArticolareNotte').value,
+    menteAttivaNotte: document.getElementById('oggiMenteAttivaNotte').value,
+    noteSonno: document.getElementById('oggiNoteSonno').value,
+
+    scariche: parseInt(document.getElementById('oggiScariche').value) || null,
+    bristol: parseInt(document.getElementById('oggiBristol').value) || null,
     gonfiore: document.getElementById('oggiGonfiore').value,
     flatulenza: document.getElementById('oggiFlatulenza').value,
     urgenza: document.getElementById('oggiUrgenza').value,
     dolore: document.getElementById('oggiDolore').value,
     nausea: document.getElementById('oggiNausea').value,
     reflusso: document.getElementById('oggiReflusso').value,
-    vita: parseFloat(document.getElementById('oggiVita').value)||null,
-    petto: parseFloat(document.getElementById('oggiPetto').value)||null,
-    fianchi: parseFloat(document.getElementById('oggiFianchi').value)||null,
-    torace: parseFloat(document.getElementById('oggiTorace').value)||null,
-    coscia: parseFloat(document.getElementById('oggiCoscia').value)||null,
+
+    vita: parseFloat(document.getElementById('oggiVita').value) || null,
+    petto: parseFloat(document.getElementById('oggiPetto').value) || null,
+    fianchi: parseFloat(document.getElementById('oggiFianchi').value) || null,
+    torace: parseFloat(document.getElementById('oggiTorace').value) || null,
+    coscia: parseFloat(document.getElementById('oggiCoscia').value) || null,
     note: document.getElementById('oggiNote').value
   };
-  saveDB(); toast('Giornata salvata'); renderOggiRiepilogo();
+
+  saveDB();
+  toast('Giornata salvata');
+  renderOggiRiepilogo();
 }
 
 function renderOggiRiepilogo(){
