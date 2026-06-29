@@ -286,6 +286,7 @@ input[type=range] { width:100%; accent-color:var(--accent); }
 <div class="tab" id="tab-workout">
   <div class="card">
     <h3>🏋 Nuova Sessione Workout</h3>
+
     <div class="row">
       <div class="field"><label>Data</label><input type="date" id="wkData"></div>
       <div class="field">
@@ -298,9 +299,17 @@ input[type=range] { width:100%; accent-color:var(--accent); }
       </div>
       <div class="field"><label>Durata (min)</label><input type="number" id="wkDurata" placeholder="55-60"></div>
     </div>
+
+    <div class="card" style="margin-top:12px;">
+      <h4>📋 Programma della sessione selezionata</h4>
+      <p style="color:var(--muted);font-size:12px;margin-bottom:10px;">Consulta qui il programma attivo mentre compili i dati reali della sessione.</p>
+      <div id="progAllenamentoDisplay"><span style="color:var(--muted)">Programma default caricato. Aggiorna tramite scheda AI.</span></div>
+    </div>
+
     <div class="row">
       <div class="field"><label>Note sessione</label><textarea id="wkNote" placeholder="Sensazioni, stanchezza..."></textarea></div>
     </div>
+
     <div class="card" style="margin-top:12px;">
       <h4>Sessione Corrente</h4>
       <div id="esercizi-container"></div>
@@ -308,14 +317,7 @@ input[type=range] { width:100%; accent-color:var(--accent); }
         <button class="btn btn-ghost" onclick="addEsercizioManuale()">➕ Aggiungi esercizio</button>
       </div>
     </div>
-    <div class="card" style="margin-top:12px;">
-      <h4>Cardio finale</h4>
-      <div id="cardio-container"><div class="ex-block-prog"><h4>Cardio finale</h4><div class="ex-target">Programma fisso: 12-15 min zona 2, 30-45 sec recupero, intensità sostenibile.</div><div class="row"><div class="field"><label>Tipo</label><select id="cardioTipo"><option>Camminata in salita</option><option>Bike</option><option>Rower</option><option>Tapis roulant</option></select></div><div class="field"><label>Durata prevista</label><input type="text" id="cardioDurata" value="12-15 min"></div><div class="field"><label>Serie fatte</label><input type="number" id="cardioSerie" value="1"></div><div class="field"><label>Tempo/round</label><input type="text" id="cardioRound" value="12-15 min"></div></div><div class="row"><div class="field"><label>RPE</label><input type="range" min="1" max="10" value="6" id="cardioRPE"><div class="rpe-val" id="cardioRPEVal">6</div></div><div class="field"><label>Esito</label><select id="cardioEsito"><option value="completato">Completato</option><option value="parziale">Parziale</option><option value="saltato">Saltato</option></select></div><div class="field"><label>Riposo (s)</label><input type="number" id="cardioRiposo" value="30"></div><div class="field"><label>Note</label><input type="text" id="cardioNote" value="Non omettere il finale cardio"></div></div><div class="row"><div class="field"><label>Fiato/Cardio</label><input type="text" id="cardioFiato" value="Zona 2 / sostenibile"></div><div class="field"><label>Pump/Controllo</label><input type="text" id="cardioControllo" value="Qualità buona"></div></div></div></div>
-    </div>
-    <div class="card" style="margin-top:12px;">
-      <h4>Core finale</h4>
-      <div id="core-container"><div class="ex-block-prog"><h4>Core finale</h4><div class="ex-target">Programma fisso: 8-12 min, lavoro addome/anti-rotazione, controllo e qualità.</div><div class="row"><div class="field"><label>Tipo</label><select id="coreTipo"><option>Plank</option><option>Dead Bug</option><option>Side Plank</option><option>Pallof Press</option><option>Reverse Crunch</option></select></div><div class="field"><label>Durata prevista</label><input type="text" id="coreDurata" value="8-12 min"></div><div class="field"><label>Serie fatte</label><input type="number" id="coreSerie" value="3"></div><div class="field"><label>Ripetizioni/secondi</label><input type="text" id="coreRep" value="8-12 reps / 20-40s"></div></div><div class="row"><div class="field"><label>RPE</label><input type="range" min="1" max="10" value="7" id="coreRPE"><div class="rpe-val" id="coreRPEVal">7</div></div><div class="field"><label>Esito</label><select id="coreEsito"><option value="completato">Completato</option><option value="parziale">Parziale</option><option value="saltato">Saltato</option></select></div><div class="field"><label>Riposo (s)</label><input type="number" id="coreRiposo" value="30"></div><div class="field"><label>Note</label><input type="text" id="coreNote" value="Non omettere il finale core"></div></div><div class="row"><div class="field"><label>Stabilità/Controllo</label><input type="text" id="coreControllo" value="Controllo buono"></div><div class="field"><label>Sensazione addome</label><input type="text" id="coreSensazione" value="Addome attivo"></div></div></div></div>
-    </div>
+
     <div class="card" style="margin-top:12px;">
       <h4>Feedback sessione</h4>
       <div class="row">
@@ -332,15 +334,14 @@ input[type=range] { width:100%; accent-color:var(--accent); }
         <div class="field"><label>Nota libera</label><input type="text" id="wkFreeNote" placeholder="Dettagli aggiuntivi"></div>
       </div>
     </div>
+
     <div class="btn-bar">
       <button class="btn btn-primary" onclick="salvaWorkout()">💾 Salva sessione</button>
     </div>
   </div>
-  <div class="card">
-    <h3>📋 Programma attivo</h3>
-    <div id="progAllenamentoDisplay"><span style="color:var(--muted)">Programma default caricato. Aggiorna tramite scheda AI.</span></div>
-  </div>
 </div>
+
+<!-- TAB SESSIONI -->
 <div class="tab" id="tab-sessioni">
   <div class="card">
     <h3>📋 Storico Sessioni Allenamento</h3>
@@ -367,6 +368,8 @@ input[type=range] { width:100%; accent-color:var(--accent); }
     <div id="sessioniContainer"></div>
   </div>
 </div>
+
+<!-- TAB DIETA -->
 <div class="tab" id="tab-dieta">
   <div class="card">
     <h3>🎯 Target Macronutrienti</h3>
@@ -420,6 +423,8 @@ input[type=range] { width:100%; accent-color:var(--accent); }
     <div id="dietaStorico"></div>
   </div>
 </div>
+
+<!-- TAB PROGRESSI -->
 <div class="tab" id="tab-progressi">
   <div class="card">
     <h3>📈 Progressi</h3>
@@ -451,12 +456,29 @@ input[type=range] { width:100%; accent-color:var(--accent); }
     </div>
   </div>
 </div>
+
+<!-- TAB AI -->
 <div class="tab" id="tab-ai">
   <div class="card">
-    <h3>🤖 Genera Prompt AI</h3>
+    <h3>🤖 Configurazione Prompt AI</h3>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:12px;">Qui puoi modificare il testo base del prompt senza toccare il codice. Usa i placeholder già presenti per inserire automaticamente i dati dinamici.</p>
+
+    <div style="margin-top:12px;position:relative;">
+      <textarea class="ai-textarea" id="aiPromptBase" style="min-height:280px;" placeholder="Prompt base editabile"></textarea>
+    </div>
+
+    <div class="btn-bar">
+      <button class="btn btn-success" onclick="salvaPromptBaseAI()">💾 Salva prompt base</button>
+      <button class="btn btn-ghost" onclick="caricaPromptBaseAI()">↺ Ricarica prompt base</button>
+    </div>
+
+    <div class="sep"></div>
+
+    <h3>📋 Genera Prompt AI</h3>
     <p style="color:var(--muted);font-size:12px;margin-bottom:12px;">Genera un prompt con obiettivo, regole, profilo, sessioni, dieta e target.</p>
     <div class="row" style="align-items:center;gap:8px;">
-      <div class="field"><label>Giorni da includere</label>
+      <div class="field">
+        <label>Giorni da includere</label>
         <select id="aiGiorni">
           <option value="7">7 giorni</option>
           <option value="14" selected>14 giorni</option>
@@ -464,14 +486,17 @@ input[type=range] { width:100%; accent-color:var(--accent); }
         </select>
       </div>
     </div>
+
     <div class="btn-bar">
       <button class="btn btn-primary" onclick="generaPromptAI()">📋 Genera Prompt</button>
     </div>
+
     <div style="margin-top:12px;position:relative;">
       <textarea class="ai-textarea" id="aiPromptOutput" readonly placeholder="Il prompt apparirà qui"></textarea>
       <button class="btn btn-ghost" onclick="copiaPrompt()" style="position:absolute;right:10px;top:10px;">Copia</button>
     </div>
   </div>
+
   <div class="card">
     <h3>🧠 Prompt AI</h3>
     <div id="aiPromptPreview"></div>
@@ -483,11 +508,11 @@ input[type=range] { width:100%; accent-color:var(--accent); }
       <button class="btn btn-success" onclick="salvaRispostaAI()" style="position:absolute;right:10px;top:10px;">Salva risposta AI</button>
     </div>
     <div id="aiParseLog" style="margin-top:12px;"></div>
-
   </div>
 </div>
-<div class="tab" id="tab-impostazioni">
 
+<!-- TAB IMPOSTAZIONI -->
+<div class="tab" id="tab-impostazioni">
 <!-- DA QUI --->
   <div class="card">
     <h3>⚙ Impostazioni Dati</h3>
@@ -966,6 +991,7 @@ function salvaWorkout(){
   document.getElementById('wkNote').value = '';
   toast('Sessione salvata - ' + esercizi.length + ' esercizi');
   caricaSchedaWorkout();
+  caricaPromptBaseAI();
 }
 
 
@@ -1403,6 +1429,50 @@ function buildBar(id, labels, data, label){
   });
 }
 
+// ─── AI
+function getDefaultPromptBase(){
+  return [
+    '# Dati Cruscotto Giuseppe - Richiesta aggiornamento programma',
+    '',
+    '## Obiettivo principale',
+    '- Fisico asciutto e tirato.',
+    '- Regolarita intestinale: feci di qualita, una volta al giorno, no gonfiore, no dolori.',
+    '- Alta qualita del sonno.',
+    '',
+    '## Regole di decisione',
+    '- Piano sostenibile.',
+    '- Massimo 3 allenamenti a settimana.',
+    '- Massima perdita di grasso senza peggiorare sonno, fame, intestino e recupero.',
+    '- Adattamento progressivo in base al feedback.',
+    '- Riduzione di volume o intensita se recupero o intestino peggiorano.',
+    '',
+    '## Profilo',
+    'Nome: {{NOME}} | Eta: {{ETA}} | Altezza: {{ALTEZZA}} cm',
+    'Peso attuale: {{PESO_ATTUALE}} kg',
+    'Lavoro sedentario. 2 ore di macchina nei giorni office.',
+    'Presenza di sonno disturbato con possibili risvegli notturni e difficolta di riaddormentamento.',
+    'Colite aspecifica con alvo irregolare, gonfiore comune e dolore addominale.',
+    'Passato sportivo: pallavolo (3-4 allenamenti + 1 sessione pesi), poi 3 allenamenti pesi, poi 6 mesi HIIT, senza raggiungere il fisico tirato.',
+    '',
+    '## Target nutrizionali attuali',
+    'Kcal: {{TARGET_KCAL}} | Proteine: {{TARGET_PRO}}g | Carboidrati: {{TARGET_CARBO}}g | Grassi: {{TARGET_FAT}}g',
+    ''
+  ].join('\\n');
+}
+
+function caricaPromptBaseAI(){
+  if(!DB.aiConfig) DB.aiConfig = {};
+  if(!DB.aiConfig.promptBase) DB.aiConfig.promptBase = getDefaultPromptBase();
+  const el = document.getElementById('aiPromptBase');
+  if(el) el.value = DB.aiConfig.promptBase;
+}
+
+function salvaPromptBaseAI(){
+  if(!DB.aiConfig) DB.aiConfig = {};
+  DB.aiConfig.promptBase = document.getElementById('aiPromptBase').value.trim() || getDefaultPromptBase();
+  saveDB();
+  toast('Prompt base AI salvato');
+}
 
 function generaPromptAI(){
   const giorni = parseInt(document.getElementById('aiGiorni').value) || 14;
@@ -1416,30 +1486,23 @@ function generaPromptAI(){
   const pr = DB.profile || {};
   const targets = DB.targets || {};
 
-  let txt = '# Dati Cruscotto Giuseppe - Richiesta aggiornamento programma\n\n';
+  if(!DB.aiConfig) DB.aiConfig = {};
+  const baseTpl = (DB.aiConfig.promptBase || getDefaultPromptBase());
 
-  txt += '## Obiettivo principale\n';
-  txt += '- Fisico asciutto e tirato.\n';
-  txt += '- Regolarita intestinale: feci di qualita, una volta al giorno, no gonfiore, no dolori.\n';
-  txt += '- Alta qualita del sonno.\n\n';
+  const latestDate = dates.length ? dates[dates.length - 1] : null;
+  const latestEntry = latestDate ? (DB.entries[latestDate] || {}) : {};
 
-  txt += '## Regole di decisione\n';
-  txt += '- Piano sostenibile.\n';
-  txt += '- Massimo 3 allenamenti a settimana.\n';
-  txt += '- Massima perdita di grasso senza peggiorare sonno, fame, intestino e recupero.\n';
-  txt += '- Adattamento progressivo in base al feedback.\n';
-  txt += '- Riduzione di volume o intensita se recupero o intestino peggiorano.\n\n';
+  let txt = baseTpl
+    .replaceAll('{{NOME}}', pr.nome || 'Giuseppe')
+    .replaceAll('{{ETA}}', pr.eta || 44)
+    .replaceAll('{{ALTEZZA}}', pr.altezza || 187)
+    .replaceAll('{{PESO_ATTUALE}}', latestEntry.peso || pr.peso || 90)
+    .replaceAll('{{TARGET_KCAL}}', targets.kcal || 2200)
+    .replaceAll('{{TARGET_PRO}}', targets.pro || 180)
+    .replaceAll('{{TARGET_CARBO}}', targets.carbo || 220)
+    .replaceAll('{{TARGET_FAT}}', targets.fat || 70);
 
-  txt += '## Profilo\n';
-  txt += 'Nome: ' + (pr.nome || 'Giuseppe') + ' | Eta: ' + (pr.eta || 44) + ' | Altezza: ' + (pr.altezza || 187) + ' cm\n';
-  txt += 'Peso attuale: 90 kg\n';
-  txt += 'Lavoro sedentario. 2 ore di macchina nei giorni office.\n';
-  txt += 'Presenza di sonno disturbato con possibili risvegli notturni e difficolta di riaddormentamento.\n';
-  txt += 'Colite aspecifica con alvo irregolare, gonfiore comune e dolore addominale.\n';
-  txt += 'Passato sportivo: pallavolo (3-4 allenamenti + 1 sessione pesi), poi 3 allenamenti pesi, poi 6 mesi HIIT, senza raggiungere il fisico tirato.\n\n';
-
-  txt += '## Target nutrizionali attuali\n';
-  txt += 'Kcal: ' + (targets.kcal || 2200) + ' | Proteine: ' + (targets.pro || 180) + 'g | Carboidrati: ' + (targets.carbo || 220) + 'g | Grassi: ' + (targets.fat || 70) + 'g\n\n';
+  txt += '\n\n';
 
   var lastCirc = dates.slice().reverse().filter(function(d){
     var e = DB.entries[d];
@@ -1653,6 +1716,7 @@ window.addEventListener('DOMContentLoaded', function(){
   PASTI_DEFAULT.forEach(function(n){ addPasto(n); });
   refreshAll();
   caricaSchedaWorkout();
+  caricaPromptBaseAI();
 });
 // Helper functions
 function updateRPE(id, val){
