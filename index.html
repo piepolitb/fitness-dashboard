@@ -1269,15 +1269,20 @@ function buildBar(id, labels, data, label){
 }
 
 
-// ─── AI PROMPT ───────────────────────────────────────────────────────────────
 function generaPromptAI(){
   const giorni = parseInt(document.getElementById('aiGiorni').value) || 14;
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-giorni);
-  const dates = Object.keys(DB.entries).filter(function(d){ return new Date(d)>=cutoff; }).sort();
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - giorni);
+
+  const dates = Object.keys(DB.entries)
+    .filter(function(d){ return new Date(d) >= cutoff; })
+    .sort();
+
   const pr = DB.profile || {};
   const targets = DB.targets || {};
 
   let txt = '# Dati Cruscotto Giuseppe - Richiesta aggiornamento programma\n\n';
+
   txt += '## Obiettivo principale\n';
   txt += '- Fisico asciutto e tirato.\n';
   txt += '- Regolarita intestinale: feci di qualita, una volta al giorno, no gonfiore, no dolori.\n';
@@ -1294,7 +1299,7 @@ function generaPromptAI(){
   txt += 'Nome: ' + (pr.nome || 'Giuseppe') + ' | Eta: ' + (pr.eta || 44) + ' | Altezza: ' + (pr.altezza || 187) + ' cm\n';
   txt += 'Peso attuale: 90 kg\n';
   txt += 'Lavoro sedentario. 2 ore di macchina nei giorni office.\n';
-  txt += 'Sonno migliorato ma con storia recente di sonno disturbato.\n';
+  txt += 'Presenza di sonno disturbato con possibili risvegli notturni e difficolta di riaddormentamento.\n';
   txt += 'Colite aspecifica con alvo irregolare, gonfiore comune e dolore addominale.\n';
   txt += 'Passato sportivo: pallavolo (3-4 allenamenti + 1 sessione pesi), poi 3 allenamenti pesi, poi 6 mesi HIIT, senza raggiungere il fisico tirato.\n\n';
 
@@ -1305,18 +1310,60 @@ function generaPromptAI(){
     var e = DB.entries[d];
     return e && (e.vita || e.petto || e.fianchi || e.torace || e.coscia);
   })[0];
+
   if(lastCirc){
     var ec = DB.entries[lastCirc] || {};
     txt += '## Circonferenze piu recenti (' + lastCirc + ')\n';
-    txt += 'Vita: ' + (ec.vita||'-') + ' cm | Petto: ' + (ec.petto||'-') + ' cm | Fianchi: ' + (ec.fianchi||'-') + ' cm | Torace: ' + (ec.torace||'-') + ' cm | Coscia: ' + (ec.coscia||'-') + ' cm\n\n';
+    txt += 'Vita: ' + (ec.vita || '-') + ' cm | Petto: ' + (ec.petto || '-') + ' cm | Fianchi: ' + (ec.fianchi || '-') + ' cm | Torace: ' + (ec.torace || '-') + ' cm | Coscia: ' + (ec.coscia || '-') + ' cm\n\n';
   }
 
   txt += '## Dati giornalieri (ultimi ' + giorni + ' giorni)\n';
-  txt += '| Data | Peso | HRV | Sonno | BB | Passi | Seduta | Umore | Energia | Scariche | Bristol | Gonfiore | Dolore |\n';
-  txt += '|------|------|-----|-------|----|-------|--------|-------|---------|----------|---------|-----------|--------|\n';
+  txt += '| Data | Peso | HRV | Sonno h | Qualita sonno | Risvegli | Riaddormentamento | Agitazione | Muoversi | Tensione art. | Mente attiva | BB | Passi | Seduta | Umore | Energia | Scariche | Bristol | Gonfiore | Dolore |\n';
+  txt += '|------|------|-----|---------|----------------|----------|-------------------|------------|----------|----------------|---------------|----|-------|--------|-------|---------|----------|---------|-----------|--------|\n';
+
   dates.forEach(function(d){
     var e = DB.entries[d] || {};
-    txt += '| '+d+' | '+(e.peso||'-')+' | '+(e.hrv||'-')+' | '+(e.sonno||'-')+' | '+(e.bodyBattery||'-')+' | '+(e.passi||'-')+' | '+(e.seduta||'-')+' | '+(e.umore||'-')+' | '+(e.energia||'-')+' | '+(e.scariche||'-')+' | '+(e.bristol||'-')+' | '+(e.gonfiore||'-')+' | '+(e.dolore||'-')+' |\n';
+    txt += '| ' + d +
+      ' | ' + (e.peso || '-') +
+      ' | ' + (e.hrv || '-') +
+      ' | ' + (e.sonno || '-') +
+      ' | ' + (e.qualitaSonno || '-') +
+      ' | ' + (e.risvegliNotturni || '-') +
+      ' | ' + (e.riaddormentamento || '-') +
+      ' | ' + (e.agitazioneNotturna || '-') +
+      ' | ' + (e.muoversiNotte || '-') +
+      ' | ' + (e.tensioneArticolareNotte || '-') +
+      ' | ' + (e.menteAttivaNotte || '-') +
+      ' | ' + (e.bodyBattery || '-') +
+      ' | ' + (e.passi || '-') +
+      ' | ' + (e.seduta || '-') +
+      ' | ' + (e.umore || '-') +
+      ' | ' + (e.energia || '-') +
+      ' | ' + (e.scariche || '-') +
+      ' | ' + (e.bristol || '-') +
+      ' | ' + (e.gonfiore || '-') +
+      ' | ' + (e.dolore || '-') +
+      ' |\n';
+  });
+
+  txt += '\n## Dettaglio sonno notturno\n';
+  dates.forEach(function(d){
+    var e = DB.entries[d] || {};
+    var hasSleepDetail =
+      e.risvegliNotturni || e.riaddormentamento || e.agitazioneNotturna ||
+      e.muoversiNotte || e.tensioneArticolareNotte || e.menteAttivaNotte || e.noteSonno;
+
+    if(hasSleepDetail){
+      txt += '- ' + d +
+        ': risvegli=' + (e.risvegliNotturni || 0) +
+        ', riaddormentamento=' + (e.riaddormentamento || '-') +
+        ', agitazione=' + (e.agitazioneNotturna || '-') +
+        ', muoversi=' + (e.muoversiNotte || '-') +
+        ', tensione articolare=' + (e.tensioneArticolareNotte || '-') +
+        ', mente attiva=' + (e.menteAttivaNotte || '-') +
+        (e.noteSonno ? ', note=' + e.noteSonno : '') +
+        '\n';
+    }
   });
 
   txt += '\n## Dieta (ultimi ' + giorni + ' giorni)\n';
@@ -1324,23 +1371,29 @@ function generaPromptAI(){
   txt += '|------|------|-----|-------|-----|\n';
   dates.forEach(function(d){
     var r = DB.dieta[d];
-    if(r && r.totale) txt += '| '+d+' | '+(r.totale.kcal||0)+' | '+(r.totale.pro||0)+' | '+(r.totale.carbo||0)+' | '+(r.totale.fat||0)+' |\n';
+    if(r && r.totale){
+      txt += '| ' + d + ' | ' + (r.totale.kcal || 0) + ' | ' + (r.totale.pro || 0) + ' | ' + (r.totale.carbo || 0) + ' | ' + (r.totale.fat || 0) + ' |\n';
+    }
   });
 
   txt += '\n## Ultime sessioni workout\n';
-  var wks = (DB.workouts||[]).slice().sort(function(a,b){ return b.data.localeCompare(a.data); }).slice(0,6);
+  var wks = (DB.workouts || []).slice().sort(function(a,b){
+    return b.data.localeCompare(a.data);
+  }).slice(0,6);
+
   wks.forEach(function(s){
-    txt += '\n### '+s.data+' - Sessione '+s.scheda+(s.durata?' ('+s.durata+' min)':'')+'\n';
+    txt += '\n### ' + s.data + ' - Sessione ' + s.scheda + (s.durata ? ' (' + s.durata + ' min)' : '') + '\n';
     if(s.esercizi && s.esercizi.length){
       s.esercizi.forEach(function(e){
-        txt += '- '+e.nome+': '+(e.serie||'-')+' x '+(e.reps||'-')+' @ '+(e.peso||'-')+'kg | RPE '+(e.rpe||'-')+' | '+(e.esito||'-')+(e.note?' | '+e.note:'')+'\n';
+        txt += '- ' + e.nome + ': ' + (e.serie || '-') + ' x ' + (e.reps || '-') + ' @ ' + (e.peso || '-') + 'kg | RPE ' + (e.rpe || '-') + ' | ' + (e.esito || '-') + (e.note ? ' | ' + e.note : '') + '\n';
       });
     }
-    if(s.note) txt += 'Note: '+s.note+'\n';
+    if(s.note) txt += 'Note: ' + s.note + '\n';
   });
 
   txt += '\n---\n';
   txt += 'Aggiorna il programma in base a questi dati. Focus: fisico asciutto e tirato, grasso addominale, petto, fianchi, interno coscia, regolarita intestinale, qualita del sonno.\n';
+  txt += 'Considera in modo esplicito anche i pattern di sonno disturbato: risvegli notturni, difficolta di riaddormentamento, agitazione, necessita di muoversi, tensione articolare, stato di allerta mentale.\n';
   txt += 'Regole: piano sostenibile, max 3 sessioni/settimana, massima perdita di grasso senza peggiorare sonno/intestino/recupero, adattamento progressivo, riduci volume se recupero o intestino peggiorano.\n';
   txt += 'Workout: 60 min a sessione, 3 sessioni (A, B, C), blocco pesi principale + blocco cardio finale + blocco core/addome finale. Ogni sessione piu densa della precedente.\n';
   txt += 'Alimentazione: 3-4 pasti/giorno, proteine in ogni pasto, carboidrati a pranzo e attorno all allenamento, grassi moderati, verdure cotte, semplificazione nei giorni di intestino sensibile.\n';
@@ -1356,6 +1409,7 @@ function generaPromptAI(){
   document.getElementById('aiPromptOutput').value = txt;
   toast('Prompt generato - ' + txt.length + ' caratteri');
 }
+
 function copiaPrompt(){
   const txt = document.getElementById('aiPromptOutput').value;
   if(!txt){ toast('Prima genera il prompt', true); return; }
