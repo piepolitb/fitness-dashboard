@@ -398,9 +398,10 @@ input[type=range] { width:100%; accent-color:var(--accent); }
       <div class="field"><label>Note</label><input type="text" id="dNote" placeholder="Riso, pollo..."></div>
       <div class="field"><label>Stato</label><input type="text" id="dStatus" value="ok"></div>
     </div>
-    <div class="btn-bar">
-      <button class="btn btn-primary" onclick="salvaDieta()">💾 Salva dieta</button>
-    </div>
+	<div class="btn-bar">
+		<button class="btn btn-primary" onclick="salvaDieta()">💾 Salva dieta</button>
+		<button class="btn btn-ghost" onclick="resetFormDieta()">Annulla modifica</button>
+		</div>
   </div>
   <div class="card">
     <h3>🥗 Programma Alimentare</h3>
@@ -629,6 +630,7 @@ let DB = {
 };
 let fileHandle = null;
 let charts = {};
+let editingPasto = null;
 
 function loadDB(){
   try {
@@ -1111,32 +1113,64 @@ function salvaDieta() {
   if (!DB.dieta[dt]) {
     DB.dieta[dt] = {
       data: dt,
+      modalita: "pasti",
       pasti: [],
       totale: { kcal: 0, pro: 0, carbo: 0, fat: 0 }
     };
   }
 
-  DB.dieta[dt].pasti.push({
-    nome: tipo,
-    kcal,
-    pro,
-    carbo,
-    fat,
-    note,
-    status
-  });
+  if (!DB.dieta[dt].pasti) DB.dieta[dt].pasti = [];
+  DB.dieta[dt].modalita = "pasti";
 
-  DB.dieta[dt].totale = DB.dieta[dt].pasti.reduce((acc, p) => {
-    acc.kcal += Number(p.kcal || 0);
-    acc.pro += Number(p.pro || 0);
-    acc.carbo += Number(p.carbo || 0);
-    acc.fat += Number(p.fat || 0);
-    return acc;
-  }, { kcal: 0, pro: 0, carbo: 0, fat: 0 });
+  const isEditing = !!editingPasto;
 
+  if (editingPasto && editingPasto.data === dt) {
+    const idx = DB.dieta[dt].pasti.findIndex(function(p){
+      return p.id === editingPasto.id;
+    });
+
+    if (idx >= 0) {
+      DB.dieta[dt].pasti[idx] = {
+        ...DB.dieta[dt].pasti[idx],
+        id: editingPasto.id,
+        nome: tipo,
+        kcal,
+        pro,
+        carbo,
+        fat,
+        note,
+        status
+      };
+    } else {
+      DB.dieta[dt].pasti.push({
+        id: editingPasto.id,
+        nome: tipo,
+        kcal,
+        pro,
+        carbo,
+        fat,
+        note,
+        status
+      });
+    }
+  } else {
+    DB.dieta[dt].pasti.push({
+      id: 'pasto_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      nome: tipo,
+      kcal,
+      pro,
+      carbo,
+      fat,
+      note,
+      status
+    });
+  }
+
+  ricalcolaTotaleDieta(dt);
   saveDB();
   renderDietaStorico();
-  toast("Dieta salvata");
+  resetFormDieta();
+  toast(isEditing ? "Pasto aggiornato" : "Dieta salvata");
 }
 
 function salvaTarget(){
@@ -1163,25 +1197,47 @@ function renderTargetDisplay(){
 function renderDietaStorico(){
   const dates = Object.keys(DB.dieta).sort().reverse().slice(0,10);
   const c = document.getElementById('dietaStorico');
-  if(!dates.length){ c.innerHTML='<p style="color:var(--muted)">Nessun dato inserito.</p>'; return; }
-  const t = DB.targets;
+
+  if(!dates.length){
+    c.innerHTML = '<p style="color:var(--muted)">Nessun dato inserito.</p>';
+    return;
+  }
+
+  const t = DB.targets || {};
+
   c.innerHTML = dates.map(function(d){
-    const r = DB.dieta[d];
+    const r = DB.dieta[d] || {};
     const tot = r.totale || {};
+    const pasti = r.pasti || [];
+
     return '<div class="session-card">' +
-      '<div class="sc-head"><div><b>'+d+'</b> <span class="badge badge-gray">'+(r.modalita==='pasti'?'Per pasto':'Totale')+'</span></div></div>' +
-      '<div class="macro-row" style="gap:8px;">'+
-        macroBox('',tot.kcal||0,t.kcal,'kcal') +
-        macroBox('',tot.pro||0,t.pro,'g') +
-        macroBox('',tot.carbo||0,t.carbo,'g') +
-        macroBox('',tot.fat||0,t.fat,'g') +
+      '<div class="sc-head"><div><b>' + d + '</b> <span class="badge badge-gray">Per pasto</span></div></div>' +
+      '<div class="macro-row" style="gap:8px;">' +
+        macroBox('', tot.kcal || 0, t.kcal, 'kcal') +
+        macroBox('', tot.pro || 0, t.pro, 'g') +
+        macroBox('', tot.carbo || 0, t.carbo, 'g') +
+        macroBox('', tot.fat || 0, t.fat, 'g') +
       '</div>' +
-      (r.pasti && r.pasti.length ?
-        '<details><summary>Dettaglio pasti</summary><div style="margin-top:6px;">'+
-        r.pasti.map(function(p){ return '<div class="hist-entry"><span class="date">'+p.nome+'</span><span>'+p.kcal+'kcal</span><span>P '+p.pro+'g</span><span>C '+p.carbo+'g</span><span>F '+p.fat+'g</span>'+(p.note?'<span style="color:var(--muted)">'+p.note+'</span>':'')+'</div>'; }).join('') +
+      (pasti.length ?
+        '<details><summary>Dettaglio pasti</summary><div style="margin-top:6px;">' +
+        pasti.map(function(p, idx){
+          const pid = p.id || ('legacy_' + idx);
+          return '<div class="hist-entry">' +
+            '<span class="date">' + (p.nome || '-') + '</span>' +
+            '<span>' + (p.kcal || 0) + ' kcal</span>' +
+            '<span>P ' + (p.pro || 0) + 'g</span>' +
+            '<span>C ' + (p.carbo || 0) + 'g</span>' +
+            '<span>F ' + (p.fat || 0) + 'g</span>' +
+            (p.status ? '<span class="badge badge-blue">' + p.status + '</span>' : '') +
+            (p.note ? '<span style="color:var(--muted)">' + p.note + '</span>' : '') +
+            '<button class="btn btn-ghost btn-sm" onclick="modificaPasto(\'' + d + '\', \'' + pid + '\')">Modifica</button>' +
+            '<button class="btn btn-danger btn-sm" onclick="eliminaPasto(\'' + d + '\', \'' + pid + '\')">Elimina</button>' +
+          '</div>';
+        }).join('') +
         '</div></details>' : '') +
       '</div>';
   }).join('');
+
   renderProgAlimentareDisplay();
 }
 
@@ -1196,6 +1252,85 @@ function renderProgAlimentareDisplay(){
 }
 
 function escH(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function ricalcolaTotaleDieta(dt){
+  if(!DB.dieta[dt]) return;
+
+  const pasti = DB.dieta[dt].pasti || [];
+  DB.dieta[dt].totale = pasti.reduce(function(acc, p){
+    acc.kcal += Number(p.kcal || 0);
+    acc.pro += Number(p.pro || 0);
+    acc.carbo += Number(p.carbo || 0);
+    acc.fat += Number(p.fat || 0);
+    return acc;
+  }, { kcal: 0, pro: 0, carbo: 0, fat: 0 });
+}
+
+function resetFormDieta(){
+  editingPasto = null;
+  document.getElementById("dTipo").value = "colazione";
+  document.getElementById("dKcal").value = "";
+  document.getElementById("dPro").value = "";
+  document.getElementById("dCarbo").value = "";
+  document.getElementById("dFat").value = "";
+  document.getElementById("dNote").value = "";
+  document.getElementById("dStatus").value = "ok";
+}
+
+function modificaPasto(data, id){
+  const giorno = DB.dieta[data];
+  if(!giorno || !giorno.pasti) return;
+
+  const pasto = giorno.pasti.find(function(p, idx){
+    return (p.id && p.id === id) || (!p.id && ('legacy_' + idx) === id);
+  });
+
+  if(!pasto) return;
+
+  editingPasto = {
+    data: data,
+    id: pasto.id || id
+  };
+
+  document.getElementById("dData").value = data;
+  document.getElementById("dTipo").value = pasto.nome || "colazione";
+  document.getElementById("dKcal").value = pasto.kcal ?? "";
+  document.getElementById("dPro").value = pasto.pro ?? "";
+  document.getElementById("dCarbo").value = pasto.carbo ?? "";
+  document.getElementById("dFat").value = pasto.fat ?? "";
+  document.getElementById("dNote").value = pasto.note || "";
+  document.getElementById("dStatus").value = pasto.status || "ok";
+
+  toast("Pasto caricato nel form per modifica");
+  showTab('dieta');
+}
+
+function eliminaPasto(data, id){
+  const giorno = DB.dieta[data];
+  if(!giorno || !giorno.pasti) return;
+
+  const ok = confirm('Vuoi eliminare questo pasto?');
+  if(!ok) return;
+
+  giorno.pasti = giorno.pasti.filter(function(p, idx){
+    const pid = p.id || ('legacy_' + idx);
+    return pid !== id;
+  });
+
+  ricalcolaTotaleDieta(data);
+
+  if(!giorno.pasti.length){
+    delete DB.dieta[data];
+  }
+
+  if(editingPasto && editingPasto.data === data && editingPasto.id === id){
+    resetFormDieta();
+  }
+
+  saveDB();
+  renderDietaStorico();
+  toast("Pasto eliminato");
+}
 
 
 // ─── PROGRESSI ───────────────────────────────────────────────────────────────
